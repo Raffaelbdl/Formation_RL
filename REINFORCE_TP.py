@@ -1,6 +1,4 @@
 import tensorflow as tf
-import tensorflow_probability as tfp
-import numpy as np
 import gym
 import learnrl as rl
 from MEMORY import Memory
