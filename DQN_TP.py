@@ -49,9 +49,7 @@ if __name__ == "__main__":
     env = gym.make("Acrobot-v1")
 
     action_value = tf.keras.models.Sequential([
-        kl.Dense(16, activation='tanh'),
-        kl.Dense(16, activation='tanh'),
-        kl.Dense(env.action_space.n, activation='linear')
+        ...
     ])
 
     agent = DQN(action_value=action_value)

@@ -37,9 +37,7 @@ if __name__ == "__main__":
     env = gym.make("CartPole-v0")
 
     actor = tf.keras.models.Sequential([
-        kl.Dense(16, activation='tanh'),
-        kl.Dense(16, activation='tanh'),
-        kl.Dense(env.action_space.n, activation='softmax')
+        ...
     ])
     agent = REINFORCE(actor=actor)
 
