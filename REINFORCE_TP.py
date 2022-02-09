@@ -9,72 +9,29 @@ kl = tf.keras.layers
 
 class REINFORCE(rl.Agent):
 
-    def __init__(self, actor: tf.keras.Model):
+    def __init__(self,
+                 actor: tf.keras.Model,
+                 learning_rate: float = 1e-3,
+                 gamma: float = 0.99):
 
-        MEMORY_KEYS = ['observation', 'action',
-                       'reward', 'done', 'next_observation']
+        MEMORY_KEYS = ['S', 'A', 'R', 'Done', 'S_next']
         self.memory = Memory(MEMORY_KEYS=MEMORY_KEYS)
 
         self.actor = actor
-        self.opt = tf.keras.optimizers.Adam(1e-4)
-        self.gamma = 0.99
+        self.opt = tf.keras.optimizers.Adam(learning_rate)
+        self.gamma = gamma
 
-    def act(self, observation, **kwargs):
-        # Il faut créer un batch d'observation de taille 1
-        # size (1, observation_space)
-        #
-        # ===
+    def act(self, s):
 
-        # pi(a|s)
-        # vous pourriez avoir besoin de tfp.distributions.Categorical
-        #
-        # ===
+        a = None
+        return a
 
-        # a ~ pi(a|s)
-        # sample avec la méthode sample
-        #
-        # ===
+    def improve(self):
 
-        return action
+        return None
 
-    def learn(self, **kwargs):
-
-        observations, actions, rewards, dones, next_observations = self.memory.sample(
-            method='all')
-        metrics = {}
-
-        # On n'apprend que si la dernière transition est une fin d'épisode
-        if dones[-1]:
-            ep_length = len(self.memory)
-
-            # On crée un tensor contenant le numéro de la transition et l'indice de l'action
-            # (ep_len, 2)
-            #
-            # ===
-
-            # On crée le tensor des gains en commençant par la fin
-            # G_{t-1} = gamma * Rt + G_{t}
-            #
-            # ===
-
-            # On calcule la loss dans un GradientTape pour obtenir les gradients
-            with tf.GradientTape() as tape:
-                # loss = - mean(G * logprobs)
-                #
-                # ===
-
-            grads = tape.gradient(loss, self.actor.trainable_weights)
-            self.opt.apply_gradients(zip(grads, self.actor.trainable_weights))
-            metrics['actor_loss'] = tf.reduce_mean(loss).numpy()
-
-            # On vide la mémoire à la fin de l'apprentissage
-            self.memory.empty()
-
-        return metrics
-
-    def remember(self, observation, action, reward, done, next_observation, info={}, **kwargs):
-        self.memory.remember((observation, action, reward,
-                              done, next_observation))
+    def add(self, s, a, r, done, s_next):
+        self.memory.add((s, a, r, done, s_next))
 
 
 if __name__ == "__main__":
@@ -89,10 +46,22 @@ if __name__ == "__main__":
     agent = REINFORCE(actor=actor)
 
     episodes = 10000
+    for ep in range(episodes):
 
-    metrics = [('reward~env-rwd', {'steps': 'sum', 'episode': 'sum'}),
-               ('actor_loss')]
+        s = env.reset()
+        done = False
+        ep_r = 0
+        while not done:
+            a = agent.act(s)
+            s_next, r, done, info = env.step(a)
+            ep_r += r
 
-    pg = rl.Playground(env, [agent])
-    pg.fit(episodes, verbose=2, metrics=metrics)
-    pg.run(5)
+            agent.memory.add(s, a, r, done, s_next)
+
+            s = s_next
+
+        metrics = agent.improve()
+        agent.memory.clear()
+        loss = metrics["loss"]
+        print(
+            f"Episode {ep+1}/{episodes} | Ep-rwd {int(ep_r)} | Loss {loss:.2f}")

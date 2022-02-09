@@ -43,5 +43,5 @@ class Memory():
     def __len__(self):
         return self.memory_len
 
-    def empty(self):
+    def clear(self):
         self.trajectory = {}

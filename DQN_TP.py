@@ -7,98 +7,46 @@ kl = tf.keras.layers
 
 class DQN(rl.Agent):
 
-    def __init__(self, action_value: tf.keras.Model):
+    def __init__(self,
+                 action_value: tf.keras.Model,
+                 learning_rate: float = 1e-3,
+                 exploration: float = 0.15,
+                 gamma: float = 0.99,
+                 max_memory_len: int = 10000,
+                 sample_size: int = 1000):
 
-        MEMORY_KEYS = ['observation', 'action',
-                       'reward', 'done', 'next_observation']
-        self.memory = Memory(MEMORY_KEYS=MEMORY_KEYS, max_memory_len=40960)
+        MEMORY_KEYS = ['S', 'A', 'R', 'Done', 'S_next']
+        self.memory = Memory(MEMORY_KEYS=MEMORY_KEYS,
+                             max_memory_len=max_memory_len)
 
         self.action_value = action_value
-        self.opt = tf.keras.optimizers.Adam(1e-4)
+        self.opt = tf.keras.optimizers.Adam(learning_rate)
 
-        self.exploration = 0.1
-        self.gamma = 0.99
-        self.sample_size = 4096
+        self.exploration = exploration
+        self.gamma = gamma
+        self.sample_size = sample_size
 
-    def act(self, observation, greedy=False):
-        # Il faut créer un batch d'observation de taille 1
-        # size (1, observation_space)
-        #
-        # ===
+    def act(self, s, greedy=False):
 
-        # Evaluons Q(s)
-        # size (1, action_space)
-        #
-        # ===
+        a = None
+        return a
 
-        # Prenons une action
-        # Si Greedy :
-        if greedy:
-            #
-            pass
-            # ===
-        # Sinon Epsilon greedy :
-        else:
-            #
-            pass
-            # ===
+    def compute_targets(self, R, Done, S_next):
 
-        return action
+        Tar = None
+        return Tar
 
-    def evaluate(self, rewards, dones, next_observations):
-        futur_rewards = rewards
+    def improve(self):
 
-        # On regarde là où les épisodes ne sont pas finis (1-d = 1)
-        ndones = tf.logical_not(dones)
-        if tf.reduce_any(ndones):
-            # next_value = max(Q(s_next))
+        return None
 
-            # y = r + gamma*max(Q)
-            # vous pourriez avoir besoin de tf.tensor_scatter_nd_add
-
-            pass
-            # ===
-
-        return futur_rewards
-
-    def learn(self):
-        observations, actions, rewards, dones, next_observations = self.memory.sample(
-            method='random', sample_size=self.sample_size)
-
-        # On calcule gamma * Q(a', s') "expected_futur_rewards"
-        # on pourra réutiliser la méthode evaluate
-        #
-        # ===
-
-        # on calcule la loss
-        with tf.GradientTape() as tape:
-            # calcul de Q(a,s)
-            # on récupère les valeurs de Q associées aux actions
-            # vous pourriez avoir besoin de tf.gather_nd
-            #
-            # ===
-
-            loss = tf.keras.losses.mse(expected_futur_rewards, Q_action)
-
-        grads = tape.gradient(loss, self.action_value.trainable_weights)
-        self.opt.apply_gradients(
-            zip(grads, self.action_value.trainable_weights))
-
-        metrics = {
-            'value': tf.reduce_mean(Q_action).numpy(),
-            'loss': loss.numpy()
-        }
-
-        return metrics
-
-    def remember(self, observation, action, reward, done, next_observation, info={}, **param):
-        self.memory.remember((observation, action, reward,
-                              done, next_observation))
+    def add(self, s, a, r, done, s_next):
+        self.memory.add((s, a, r, done, s_next))
 
 
 if __name__ == "__main__":
 
-    env = gym.make("CartPole-v0")
+    env = gym.make("Acrobot-v1")
 
     action_value = tf.keras.models.Sequential([
         kl.Dense(16, activation='tanh'),
@@ -108,11 +56,23 @@ if __name__ == "__main__":
 
     agent = DQN(action_value=action_value)
 
-    episodes = 1000
+    episodes = 250
 
-    metrics = [('reward~env-rwd', {'steps': 'sum', 'episode': 'sum'}),
-               ('value'), ('loss')]
+    for ep in range(episodes):
 
-    pg = rl.Playground(env, [agent])
-    pg.fit(episodes, verbose=2, metrics=metrics, render=True)
-    pg.run(5)
+        s = env.reset()
+        done = False
+        ep_r = 0
+        while not done:
+            a = agent.act(s)
+            s_next, r, done, info = env.step(a)
+            ep_r += r
+
+            agent.memory.add(s, a, r, done, s_next)
+
+            metrics = agent.improve()
+
+            s = s_next
+        value, loss = metrics["value"], metrics["loss"]
+        print(
+            f"Episode {ep+1}/{episodes} | Ep-rwd {int(ep_r)} | Value {value:.2f} | Loss {loss:.2f}")
