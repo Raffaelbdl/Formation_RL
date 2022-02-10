@@ -1,6 +1,5 @@
 import tensorflow as tf
 import gym
-import learnrl as rl
 from MEMORY import Memory
 kl = tf.keras.layers
 

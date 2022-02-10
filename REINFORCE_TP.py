@@ -1,11 +1,10 @@
 import tensorflow as tf
 import gym
-import learnrl as rl
 from MEMORY import Memory
 kl = tf.keras.layers
 
 
-class REINFORCE(rl.Agent):
+class REINFORCE():
 
     def __init__(self,
                  actor: tf.keras.Model,
