@@ -4,7 +4,7 @@ from MEMORY import Memory
 kl = tf.keras.layers
 
 
-class DQN(rl.Agent):
+class DQN():
 
     def __init__(self,
                  action_value: tf.keras.Model,
