@@ -8,7 +8,7 @@ class Memory():
         self.trajectory = {}
         self.max_memory_len = max_memory_len
 
-    def remember(self, transition: tuple):
+    def add(self, transition: tuple):
         for val, key in zip(transition, self.MEMORY_KEYS):
             batched_val = tf.expand_dims(val, axis=0)
             try:
