@@ -20,8 +20,7 @@ class DQN():
 
     def act(self, s, greedy=False):
         # Il faut créer un batch d'observation de taille 1
-        S = tf.expand_dims(
-            s, axis=0)  # (1, observation_space)
+        S = tf.expand_dims(s, axis=0)  # (1, observation_space)
 
         # Q(s)
         Q = self.action_value(S)  # (1, action_space)
@@ -123,7 +122,7 @@ if __name__ == "__main__":
             s_next, r, done, info = env.step(a)
             ep_r += r
 
-            agent.memory.add(s, a, r, done, s_next)
+            agent.add(s, a, r, done, s_next)
 
             metrics = agent.improve()
 
