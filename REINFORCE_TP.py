@@ -1,4 +1,5 @@
 import tensorflow as tf
+import tensorflow_probability as tfp
 import gym
 from MEMORY import Memory
 kl = tf.keras.layers
@@ -51,7 +52,7 @@ if __name__ == "__main__":
             s_next, r, done, info = env.step(a)
             ep_r += r
 
-            agent.memory.add(s, a, r, done, s_next)
+            agent.add(s, a, r, done, s_next)
 
             s = s_next
 
